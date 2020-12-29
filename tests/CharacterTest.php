@@ -6,6 +6,8 @@ use PHPUnit\Framework\TestCase;
 use App\Character;
 use App\Melee;
 use App\Ranged;
+use App\Box;
+use App\Glass;
 
 class CharacterTest extends TestCase
 {
@@ -48,7 +50,7 @@ class CharacterTest extends TestCase
 		$omen = new Character("Omen");
 
 		//action
-		$raze->attacks($raze, $omen);
+		$raze->attacks($omen);
 
 		//then
 
@@ -88,7 +90,7 @@ class CharacterTest extends TestCase
 		
 		$reyna->setHealth(600);
 		
-		$reyna->itselfHealing($reyna, $reyna);
+		$reyna->itselfHealing($reyna);
 
 		$result= $reyna->getHealth();
 
@@ -107,7 +109,7 @@ class CharacterTest extends TestCase
 
 		// action
 		
-		$skye->attacks($skye, $breach);
+		$skye->attacks($breach);
 
 		//then
 
@@ -128,7 +130,7 @@ class CharacterTest extends TestCase
 
 		// action
 
-		$jett->attacks($jett, $sova);
+		$jett->attacks($sova);
 
 		//then
 
@@ -142,7 +144,7 @@ class CharacterTest extends TestCase
 		$brimstone = new Character("Brimstone");
 
 		$brimstone-> setRange(1);
-		$killjoy->attacks($killjoy, $brimstone);
+		$killjoy->attacks($brimstone);
 
 		$result= $brimstone->getHealth();
 
@@ -155,7 +157,7 @@ class CharacterTest extends TestCase
 		$brimstone = new Character("Brimstone");
 
 		$brimstone-> setRange(10);
-		$killjoy->attacks($killjoy, $brimstone);
+		$killjoy->attacks($brimstone);
 
 		$result= $brimstone->getHealth();
 
@@ -214,9 +216,9 @@ class CharacterTest extends TestCase
 		$cypher->belongsAFaction([0,1,3]);
 		$skye->belongsAFaction([3]);
 		
-		$cypher->isAnAllie($cypher, $skye);
+		$cypher->isAnAlly($skye);
 
-		$result= $cypher->getAllie();
+		$result= $cypher->getAlly();
 		$this->assertEquals($result, true);
 	}
 
@@ -228,7 +230,7 @@ class CharacterTest extends TestCase
 		$killjoy->belongsAFaction([0,1,3]);
 		$jett->belongsAFaction([3]);
 
-		$killjoy->isAnAllie($killjoy, $jett);
+		$killjoy->isAnAlly($jett);
 
 		$killjoy->attacks($killjoy, $jett);
 		$result= $jett->getHealth();
@@ -245,12 +247,58 @@ class CharacterTest extends TestCase
 		$sage->belongsAFaction([3]);
 
 	
-		$viper->isAnAllie($viper, $sage);
+		$viper->isAnAlly($sage);
 		$sage->setHealth(300);
 
 		$viper->healingAllies($sage);
 		$result= $sage->getHealth();
 
 		$this->assertEquals($result, 700);
+	}
+
+	public function test_things_can_receibe_damage(){
+
+		$omen= new Character('Omen');
+		$box= new Box;
+
+		$omen->attacks($box);
+
+		$result= $box->getHealth();
+
+		$this->assertEquals($result, 1900);
+	}
+
+	public function test_things_can_not_be_healed(){
+
+		$reyna= new Character('Reyna');
+		$box= new Box;
+
+		$box->setHealth(1500);
+		$reyna->healing($box);
+
+		$result= $box->getHealth();
+		$this->assertEquals($result, 1500);
+	}
+
+	public function test_things_are_neutral(){
+
+		$box= new Box;
+
+		$result= $box->getFaction();
+
+		$this->assertEquals($result, "Neutral");
+
+	}
+
+	public function test_things_can_be_destroyed(){
+
+		$sova= new Character('Sova');
+		$glass= new Glass;
+
+		$sova->attacks($glass);
+
+		$result= $glass->thingIsDestroyed($glass);
+
+		$this->assertEquals(isset($result), false);
 	}
 }

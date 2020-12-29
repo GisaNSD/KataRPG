@@ -13,7 +13,8 @@ class Character
     protected int $attackRange;
     protected int $range;
     protected $faction;
-    protected bool $allie;
+    protected bool $ally;
+    protected bool $thing;
  
 
     function __construct(string $name)
@@ -26,7 +27,8 @@ class Character
         $this->heal= 400;
         $this->range= 30;
         $this->faction= [];
-        $this->allie= false;
+        $this->ally= false;
+        $this->thing= false;
     }
     
     public function getHealth(): int
@@ -57,14 +59,14 @@ class Character
     {
         return $this->alive;
     }
-    public function getAllie(): bool
+    public function getAlly(): bool
     {
-        return $this->allie;
+        return $this->ally;
     }
 
-    public function setHealth($life): int
+    public function setHealth($health): int
     {
-        return $this->health= $life;
+        return $this->health= $health;
     }
 
     public function setLevel($level): int
@@ -72,29 +74,28 @@ class Character
         return $this->level = $level;
     }
 
-    public function setRange($distance): void
+    public function setRange($range): void
     {
-        $this->range = $distance;
+        $this->range = $range;
     }
     
-    public function attacks($attacker, $damaged)
+    public function attacks($damaged)
     { 
-        if ($attacker->name == $damaged->name || $attacker->allie == true){
-            echo "Character cannot attack allies";
+        if ($this->name == $damaged->name || $this->ally == true){
             return $damaged->health;
         }
         
-        if ( $attacker->level >= $damaged->level+ 5)
+        if ( $this->level >= $damaged->level+ 5)
         {
-            return $damaged->health -= ($attacker->damage * 1.5);};
+            return $damaged->health -= ($this->damage * 1.5);};
             
             
-        if ( $attacker->level <= ($damaged->level-5) )
+        if ( $this->level <= ($damaged->level-5) )
         {
-            return $damaged->health -= ($attacker->damage/2);
+            return $damaged->health -= ($this->damage/2);
         };
             
-         return $damaged->health -= $attacker->damage;
+         return $damaged->health -= $this->damage;
             
     }
         
@@ -107,127 +108,70 @@ class Character
         
     public function healing($character){
             
-        if($character->alive == false) { 
-            $this->health= 0;
-            return "Cannot heal death character";};
+        if($character->alive == false || $character->thing == true) { 
+            return $this->health= 0;};
         
         if($character->health >= 600) {return $character->health= 1000;};
                 
         return $character->health += $this->heal;
+        
     }
 
     public function healingAllies($character){
             
-        if($character->alive == false) { 
-            $this->health= 0; 
-            return "Cannot heal death character";
+        if($character->alive == false || $character->thing == true) { 
+            return $this->health= 0; 
         };
         
-        if($character->allie == true && $character->health >= 600) { 
+        if($character->ally == true && $character->health >= 600) { 
             return $character->health= 1000;
         };
         
-        if($character->allie == true) {
+        if($character->ally == true) {
             return $character->health += $this->heal;
         }
         
         return "Character can only heal allies";
     }
             
-    public function itselfHealing($healer, $cured){
+    public function itselfHealing($cured){
                 
-        if($healer->name != $cured->name) { return "Healer only heals itself";}
+        if($this->name != $cured->name || $this->thing == true) {return $cured->health;}
                 
         if($cured->getHealth() >= 600) { return $cured->setHealth(1000); }
                 
-        return $cured->setHealth($cured->health + $healer->heal);}
+        return $cured->setHealth($cured->health + $this->heal);}
                 
                 
-    public function belongsAFaction($i){
+    public function belongsAFaction($indexOfFaction){
                     
         $factions= ["Controlador", "Iniciador", "Centinela", "Duelista"];
                     
-        foreach($i as $f){
-            array_push($this->faction, $factions[$f]);
+        foreach($indexOfFaction as $indexToBelong){
+            array_push($this->faction, $factions[$indexToBelong]);
             }
     }
                 
-    public function leavesAFaction($i){
+    public function leavesAFaction($characterFaction){
                     
-        foreach($i as $f){
+        foreach($characterFaction as $fationToLeave){
         
-            $indexOfFaction = array_search($f, $this->faction);
+            $indexOfFaction = array_search($fationToLeave, $this->faction);
         
             array_splice($this->faction, $indexOfFaction, 1);
         }
     }
                 
-    public function isAnAllie($character1, $character2){
+    public function isAnAlly($character){
             
-        foreach($character1->faction as $f){
-           $i= array_search($f, $character2->faction);
-           if($i !== false){
-            $character1->allie= true;
-            $character2->allie = true;}
-        }   
-    }
+        foreach($this->faction as $factionCharacter){
 
-}
-            
-            
-class Melee extends Character {
-                
-    public function attacks($attacker, $damaged)
-    {   
-        if($attacker->getName() == $damaged->getName()){
-            echo "Character cannot damaged himself";
-            return $damaged->health;
-        }
-
-        if($damaged->range >= 2){
-            return $damaged->health;
-        }
+           $indexExist= array_search($factionCharacter, $character->faction);
            
-        if( $attacker->level >= $damaged->level+ 5)
-        {
-            return $damaged->health -= ($attacker->damage * 1.5);
-        };
-              
-        if($attacker->level <= ($damaged->level-5))
-        {
-            return $damaged->health -= ($attacker->damage/2);
-        };
-                
-        return $damaged->health -= $attacker->damage;
-    
-    }
-}
-
-
-
-
-
-class Ranged extends Character {
-
-    public function attacks($attacker, $damaged)
-    {   
-        if($attacker->getName() == $damaged->getName()){
-            echo "Character cannot damaged himself";
-            return $damaged->health;
-        }
-        
-        if($damaged->range >= 20){
-            return $damaged->health;
-        }
-        
-         if($attacker->level >= $damaged->level+ 5){
-            return $damaged->health -= ($attacker->damage * 1.5);};
-            
-        if($attacker->level <= ($damaged->level-5)){
-            return $damaged->health -= ($attacker->damage/2);};
-                
-        return $damaged->health -= $attacker->damage;
-                
+           if($indexExist !== false){
+            $this->ally= true;
+            $character->ally = true;}
+        } 
     }
 
 }
